@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}编辑图片{% endblock %}
+
+{% block content %}
+  <h1>编辑图片</h1>
+  <img class="pure-img" src="{{ image.file.url }}">
+  <form class="pure-form" method="post" action="{% url 'correct' id=image.id %}">
+    {% csrf_token %}
+    {% for rect in image.rect_set.all %}
+      {{ rect.type }}：{{ rect.description }}<br>
+      {{ rect.top }},{{ rect.left }},{{ rect.right }},{{ rect.bottom }}<br>
+      <input type="number" min="0" max="3" name="{{ rect.id }}/level" value="{{ rect.level }}"><br>
+    {% endfor %}
+    <button type="submit">提交</button>
+  </form>
+{% endblock %}

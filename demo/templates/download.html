@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}下载图片{% endblock %}
+
+{% block content %}
+  <h1>下载图片</h1>
+  <img class="pure-img" src="{{ image.file.url }}">
+  {% for rect in image.rect_set.all %}
+    {{ rect.type }}：{{ rect.description }}<br>
+    {{ rect.top }},{{ rect.left }},{{ rect.right }},{{ rect.bottom }}<br>
+    {{ rect.level }} -&gt; {{ rect.level_corrected }}<br>
+  {% endfor %}
+{% endblock %}
