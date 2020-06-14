@@ -11,6 +11,7 @@ def uuid_name(instance=None, filename=None):
 class Image(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     file = models.FileField(upload_to=uuid_name)
+    img_path = None
     scanned = models.BooleanField(default=False)
     corrected = models.BooleanField(default=False)
 

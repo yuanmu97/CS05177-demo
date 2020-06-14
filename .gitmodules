@@ -1,0 +1,3 @@
+[submodule "demo/pmz"]
+	path = demo/pmz
+	url = https://github.com/yuanmu97/PrivacyModelZoo.git
