@@ -24,7 +24,7 @@ class ApiImage(View):
 
     def post(self, request, id=None):
         if id is None:
-            image = models.Image.objects.create(file=request.FILES['image'])
+            image = models.Image.objects.create(file=request.FILES['image'], scanned=True)
             res_face = model_face.inference(img_path=image.file.path)
             for r in res_face:
                 x1, y1, x2, y2 = r['box_points']
