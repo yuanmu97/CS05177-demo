@@ -1,58 +1,52 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Axios from 'axios';
-import { Button, Checkbox, Popover } from 'antd';
+import { Button, Checkbox, Col, List, Row } from 'antd';
 
-function Rect({ data, imgShape, imgRect, value, onChange }) {
-  if (data && imgShape && imgRect) {
-    let className = 'edit-rect';
-    className += ` edit-rect-correct-${value}`;
-    className += ` edit-rect-${data.level}`;
-    function f(e) {
-      if (e.target.checked) {
-        onChange(3);
-      } else {
-        onChange(0);
+function rect2style(data, imgShape, imgRect) {
+  return {
+    position: 'fixed',
+    top: data.top / imgShape.height * imgRect.height + imgRect.top,
+    left: data.left / imgShape.width * imgRect.width + imgRect.left,
+    height: (data.bottom - data.top) / imgShape.height * imgRect.height,
+    width: (data.right - data.left) / imgShape.width * imgRect.width,
+  };
+}
+
+function Rect({ data, value, onChange, ...props }) {
+  return (
+    <List.Item
+      extra={
+        <Checkbox
+          checked={value>0}
+          onChange={(e) => {onChange(e.target.checked ? 3 : 0)}}
+        >
+          消除
+        </Checkbox>
       }
-    }
-    const content = (
-      <>
-        <p>{data.description}</p>
-        <p>类型：{data.type}</p>
-        <p>风险：{['无', '低', '中', '高'][data.level]}</p>
-        <p>
-          <Checkbox checked={value>0} onChange={f}>
-            这是隐私泄露，需要消除
-          </Checkbox>
-        </p>
-      </>
-    );
-    return (
-      <Popover content={content}>
-        <div
-          className={className}
-          style={{
-            top: data.top / imgShape.height * imgRect.height + imgRect.top,
-            left: data.left / imgShape.width * imgRect.width + imgRect.left,
-            height: (data.bottom - data.top) / imgShape.height * imgRect.height,
-            width: (data.right - data.left) / imgShape.width * imgRect.width,
-          }}
-        />
-      </Popover>
-    );
-  } else {
-    return null;
-  }
+      {...props}
+    >
+      <List.Item.Meta
+        title={['无', '低', '中', '高'][data.level] + '风险 - ' + data.type}
+        description={data.description}
+      />
+    </List.Item>
+  );
 }
 
 export default function Correct({ image, onFinish }) {
   const imgEl = useRef();
   const [imgShape, setImgShape] = useState();
   const [imgRect, setImgRect] = useState();
-  const level_default = {};
+  const levels_default = {};
   for (let r of image.rects) {
-    level_default[r.id] = 0;
+    levels_default[r.id] = 0;
   }
-  const [levels, setLevels] = useState(level_default);
+  const [levels, setLevels] = useState(levels_default);
+  const hover_default = {};
+  for (let r of image.rects) {
+    hover_default[r.id] = false;
+  }
+  const [hover, setHover] = useState(hover_default);
   useEffect(() => {
     let active = true;
     function update() {
@@ -77,12 +71,43 @@ export default function Correct({ image, onFinish }) {
       });
   }
   return (
-    <>
-      <img ref={imgEl} className="edit" src={image.file} />
-      {image.rects.map((r) => (
-        <Rect key={r.id} data={r} imgShape={imgShape} imgRect={imgRect} value={levels[r.id]} onChange={(l) => setLevels({...levels, [r.id]: l})} />
-      ))}
-      <Button type="primary" className="submit" onClick={submit}>提交</Button>
-    </>
+    <Row gutter={24} style={{ height: '100%' }}>
+      <Col span={12} style={{ height: '100%' }}>
+        <img
+          ref={imgEl}
+          src={image.file}
+          style={{
+            display: 'block',
+            maxHeight: '100%',
+            maxWidth: '100%',
+            margin: 'auto',
+          }}
+        />
+        {imgShape && imgRect ? image.rects.map((r) => (
+          <div
+            key={r.id}
+            style={{
+              ...rect2style(r, imgShape, imgRect),
+              background: levels[r.id] ? 'rgba(128, 128, 128, 1)' : 'none',
+              border: hover[r.id] ? '3px solid #44f' : 'none',
+            }}
+          />
+        )) : null}
+      </Col>
+      <Col span={12} style={{ height: '100%', overflowX: 'auto' }}>
+        <List footer={<Button type="primary" onClick={submit}>提交</Button>}>
+          {image.rects.map((r) => (
+            <Rect
+              key={r.id}
+              data={r}
+              value={levels[r.id]}
+              onChange={(l) => setLevels({...levels, [r.id]: l})}
+              onMouseEnter={() => {hover[r.id] = true}}
+              onMouseLeave={() => {hover[r.id] = false}}
+            />
+          ))}
+        </List>
+      </Col>
+    </Row>
   );
 };

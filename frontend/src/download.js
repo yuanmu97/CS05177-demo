@@ -8,7 +8,7 @@ export default function Download() {
   return (
     <>
       <p>download</p>
-      <Button type="primary" className="submit" onClick={reload}>再传一张</Button>
+      <Button type="primary" onClick={reload}>再传一张</Button>
     </>
   );
 };
