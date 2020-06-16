@@ -12,7 +12,7 @@ class Image(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     file = models.FileField(upload_to=uuid_name)
     scanned = models.BooleanField(default=False)
-    corrected = models.BooleanField(default=False)
+    corrected = models.FileField(upload_to=uuid_name)
 
     def get_absolute_url(self):
         return resolve_url('image', id=self.id)
@@ -22,7 +22,7 @@ class Image(models.Model):
             'id': self.id,
             'file': self.file.url,
             'scanned': self.scanned,
-            'corrected': self.corrected,
+            'corrected': self.corrected.url if self.corrected else None,
             'rects': [r.json() for r in self.rect_set.all()],
         }
 

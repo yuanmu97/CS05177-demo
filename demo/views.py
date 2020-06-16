@@ -1,10 +1,14 @@
 import json
 
+from django.core.files.base import ContentFile
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+
+import PIL.Image
+import PIL.ImageDraw
 
 from demo import models
 from pmz.pmz import FaceDetection
@@ -44,6 +48,14 @@ class ApiImage(View):
             for rect in image.rect_set.all():
                 rect.level_corrected = data[str(rect.id)]
                 rect.save()
-            image.corrected = True
-            image.save()
+            image.corrected.save('', ContentFile(''))
+            with PIL.Image.open(image.file.path) as im:
+                draw = PIL.ImageDraw.Draw(im)
+                for rect in image.rect_set.all():
+                    if rect.level_corrected:
+                        draw.rectangle(
+                            (rect.left, rect.top, rect.right+1, rect.bottom+1),
+                            fill=(128, 128, 128),
+                        )
+                im.save(image.corrected.path, 'JPEG')
             return JsonResponse(image.json())
