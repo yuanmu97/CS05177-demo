@@ -1,8 +1,14 @@
 import React from 'react';
-// import {  } from 'antd';
+import { Button } from 'antd';
 
 export default function Download() {
+  function reload() {
+    location.reload();
+  }
   return (
-    <p>download</p>
+    <>
+      <p>download</p>
+      <Button type="primary" className="submit" onClick={reload}>再传一张</Button>
+    </>
   );
 };

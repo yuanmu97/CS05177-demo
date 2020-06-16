@@ -49,6 +49,10 @@ TEMPLATES = [
     },
 ]
 
+STATICFILES_DIRS = [
+    'frontend/dist',
+]
+
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]

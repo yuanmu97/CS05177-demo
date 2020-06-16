@@ -26,7 +26,7 @@ const less_loader = {
 
 module.exports = {
   entry: './src',
-  output: { filename: '[name].[hash:8].js' },
+  output: { filename: '[name].js' },
   devServer: {
     contentBase: 'src',
   },
