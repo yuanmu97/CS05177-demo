@@ -8,4 +8,4 @@
 - `mkdir var`
 - `./manage.py migrate`
 - `./manage.py runserver 0:8080`
-- 访问 `http://localhost:8080/static/index.html`
+- 访问 `http://localhost:8080/`
