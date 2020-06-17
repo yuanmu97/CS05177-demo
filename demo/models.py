@@ -4,15 +4,16 @@ from django.db import models
 from django.shortcuts import resolve_url
 
 
-def uuid_name(instance=None, filename=None):
-    return str(uuid4())
+def uuid_dir(instance, filename):
+    filename = filename.rpartition('/')[2] or 'file'
+    return f'{uuid4()}/{filename}'
 
 
 class Image(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    file = models.FileField(upload_to=uuid_name)
+    file = models.FileField(upload_to=uuid_dir)
     scanned = models.BooleanField(default=False)
-    corrected = models.FileField(upload_to=uuid_name)
+    corrected = models.FileField(upload_to=uuid_dir)
 
     def get_absolute_url(self):
         return resolve_url('image', id=self.id)

@@ -48,7 +48,7 @@ class ApiImage(View):
             for rect in image.rect_set.all():
                 rect.level_corrected = data[str(rect.id)]
                 rect.save()
-            image.corrected.save('', ContentFile(''))
+            image.corrected.save(image.file.name, ContentFile(''))
             with PIL.Image.open(image.file.path) as im:
                 draw = PIL.ImageDraw.Draw(im)
                 for rect in image.rect_set.all():
@@ -57,5 +57,5 @@ class ApiImage(View):
                             (rect.left, rect.top, rect.right+1, rect.bottom+1),
                             fill=(128, 128, 128),
                         )
-                im.save(image.corrected.path, 'JPEG')
+                im.save(image.corrected.path)
             return JsonResponse(image.json())
