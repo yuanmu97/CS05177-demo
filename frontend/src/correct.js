@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Axios from 'axios';
-import { Button, Checkbox, Col, List, Row } from 'antd';
+import { Button, Checkbox, Col, Descriptions, List, Row, Tag } from 'antd';
 
 function rect2style(data, imgShape, imgRect) {
   return {
@@ -95,7 +95,20 @@ export default function Correct({ image, onFinish }) {
         )) : null}
       </Col>
       <Col span={12} style={{ height: '100%', overflowX: 'auto' }}>
-        <List footer={<Button type="primary" onClick={submit}>提交</Button>}>
+        <List
+          header={
+            <Descriptions>
+              <Descriptions.Item label="场景">
+                {image.scenes.map((s) => (
+                  <Tag>{s.name} ({Math.floor(s.score*100)}%)</Tag>
+                ))}
+              </Descriptions.Item>
+            </Descriptions>
+          }
+          footer={
+            <Button type="primary" onClick={submit}>提交</Button>
+          }
+        >
           {image.rects.map((r) => (
             <Rect
               key={r.id}

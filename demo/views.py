@@ -11,6 +11,7 @@ import PIL.Image
 import PIL.ImageDraw
 
 from demo import models
+from demo import level
 from pmz.pmz import FaceDetection, ObjectDetection, SceneClassification
 
 # load models
@@ -18,12 +19,9 @@ model_face = FaceDetection()
 model_obj = ObjectDetection(cfg_path="pmz/pmz/object/yolov3/config/yolov3.cfg",
                             weights_path="pmz/pmz/object/yolov3/weights/yolov3.weights",
                             class_path="pmz/pmz/object/yolov3/data/coco.names")
-model_scene = SceneClassification(model_path="pmz/pmz/scene/data/resnet50_places365.pth.tar", 
+model_scene = SceneClassification(model_path="pmz/pmz/scene/data/resnet50_places365.pth.tar",
                                   json_path="pmz/pmz/scene/data/model_class.json")
 model_scene.loadFullModel()
-
-# load privacy level map
-from .type2level_dict import type2level
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -35,44 +33,37 @@ class ApiImage(View):
     def post(self, request, id=None):
         if id is None:
             image = models.Image.objects.create(file=request.FILES['image'], scanned=True)
-            res_scene = model_scene.inference(image_input=image.file.path)
-            for r in res_scene:
-                image.rect_set.create(
-                    type=r['name'],
-                    left=0,
-                    top=0,
-                    right=0,
-                    bottom=0,
-                    level=0,
-                    description=f"场景以{r['score']}置信度为{r['name']}",
+            scenes = model_scene.inference(image_input=image.file.path)
+            faces = model_face.inference(img_path=image.file.path)
+            objects = model_obj.inference(img_path=image.file.path)
+            level.guess(scenes, faces, objects)
+            for i in scenes:
+                image.scene_set.create(
+                    name=i['name'],
+                    score=i['score'],
                 )
-
-            res_face = model_face.inference(img_path=image.file.path)
-            for r in res_face:
-                x1, y1, x2, y2 = r['box_points']
+            for i in faces:
+                x1, y1, x2, y2 = i['box_points']
                 image.rect_set.create(
                     type='face',
                     left=x1,
                     top=y1,
                     right=x2,
                     bottom=y2,
-                    level=type2level[r['name']],
-                    description='这里有人脸',
+                    level=i['level'],
+                    description='',
                 )
-
-            res_obj = model_obj.inference(img_path=image.file.path)
-            for r in res_obj:
-                x1, y1, x2, y2 = r['box_points']
+            for i in objects:
+                x1, y1, x2, y2 = i['box_points']
                 image.rect_set.create(
-                    type=r['name'],
+                    type=i['name'],
                     left=x1,
                     top=y1,
                     right=x2,
                     bottom=y2,
-                    level=type2level[r['name']],
-                    description=f"这里有{r['name']}",
+                    level=i['level'],
+                    description='',
                 )
-
             return JsonResponse(image.json())
         else:
             image = get_object_or_404(models.Image, id=id)
@@ -80,6 +71,7 @@ class ApiImage(View):
             for rect in image.rect_set.all():
                 rect.level_corrected = data[str(rect.id)]
                 rect.save()
+            level.update(image.json())
             image.corrected.save(image.file.name, ContentFile(''))
             with PIL.Image.open(image.file.path) as im:
                 draw = PIL.ImageDraw.Draw(im)

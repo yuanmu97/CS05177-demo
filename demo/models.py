@@ -25,6 +25,7 @@ class Image(models.Model):
             'scanned': self.scanned,
             'corrected': self.corrected.url if self.corrected else None,
             'rects': [r.json() for r in self.rect_set.all()],
+            'scenes': [s.json() for s in self.scene_set.all()],
         }
 
 
@@ -51,4 +52,18 @@ class Rect(models.Model):
             'bottom': self.bottom,
             'level': self.level,
             'level_corrected': self.level_corrected,
+        }
+
+
+class Scene(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    image = models.ForeignKey(Image, models.PROTECT)
+    name = models.TextField()
+    score = models.FloatField()
+
+    def json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'score': self.score,
         }
